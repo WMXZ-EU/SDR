@@ -64,15 +64,18 @@ float32_t Izero (float32_t x)
     return (summe);
 }  // END Izero
 
-void calc_FIR_lowpass_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Astop)
+void calc_FIR_lowpass_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Astop, int high)
  {	// modified after
 	// Wheatley, M. (2011): CuteSDR Technical Manual. www.metronix.com, pages 118 - 120, FIR with Kaiser-Bessel Window
 	// assess required number of coefficients by
 	//     numCoeffs = (Astop - 8.0) / (2.285 * TPI * normFtrans);
+	// selecting high-pass, numCoeffs is adapter to become an even number as required for high-pass
 
 	 int ii,jj;
      float32_t Beta;
      float32_t izb;
+     float fcf;
+     int nc;
 
      // calculate Kaiser-Bessel window shape factor beta from stop-band attenuation
      if (Astop < 20.96)
@@ -83,28 +86,41 @@ void calc_FIR_lowpass_coeffs (float * coeffs, int numCoeffs, float32_t fc, float
     	 Beta = 0.5842 * powf((Astop - 20.96), 0.4) + 0.7886 * (Astop - 20.96);
 
      izb = Izero (Beta);
-     for(ii= - numCoeffs, jj=0; ii< numCoeffs; ii+=2,jj++)
-     {
-    	 float x =(float)ii/(float)numCoeffs;
-    	 coeffs[jj] = fc * m_sinc(ii,fc) * Izero(Beta*sqrtf(1.0f - x*x))/izb;
-
+     if(high)
+     {	fcf = 1.0f - fc;
+     	nc =  2*(numCoeffs/2);
      }
+     else
+     {	fcf = fc;
+     	nc =  numCoeffs;
+     }
+
+     for(ii= - nc, jj=0; ii< nc; ii+=2,jj++)
+     {
+    	 float x =(float)ii/(float)nc;
+    	 coeffs[jj] = fcf * m_sinc(ii,fcf) * Izero(Beta*sqrtf(1.0f - x*x))/izb;
+     }
+     if(high)
+     {
+    	 for(jj=1; jj< nc+1; jj+=2) coeffs[jj] = - coeffs[jj];
+     }
+
  } // END calc_lowpass_coeffs
 
 
 
-void fft_filt_init(float fc)
+void fft_filt_init(float fc, int high)
 {   int ii;
 	for(ii=0; ii< 1024; ii++)
 	{
 		bb[2*ii]=0; bb[2*ii+1]=0;
 		yy[2*ii]=0; yy[2*ii+1]=0;
 	}
-	float coeffs[NF];
-	calc_FIR_lowpass_coeffs(coeffs, NF, fc, ASTOP);
+	float coeffs[NF+1];
+	calc_FIR_lowpass_coeffs(coeffs, NF, fc, ASTOP, high);
 
-	for(ii=0; ii<NF+1; ii++) bb[2*ii]=coeffs[ii];
-
+	for(ii=0; ii<(NF+1); ii++) bb[2*ii]=coeffs[ii];
+	//
 	arm_cfft_f32(&arm_cfft_sR_f32_len1024, bb, 0, 1);
 }
 

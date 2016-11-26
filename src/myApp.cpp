@@ -15,7 +15,7 @@ extern "C" void loop(void);
 
 extern "C"
 {
-	void fft_filt_init(float fc);
+	void fft_filt_init(float fc, int high);
 	void fft_filt_exec(float *zr, float *zi, float *xr, float *xi, int nx, int MM);
 }
 
@@ -85,7 +85,7 @@ void doSimulate(void)
 	// copy data but change noise somewhat and scale signal and noise to reasonable values
 	for(ii=0;ii<mf;ii++)
 	{
-#define shs 6
+#define shs 10
 #define shn 10
 		sr[dataCount*mf+ii] = (float) (sro[ii]>>shs) + (float)(nro[(dataCount+ii) % mf]>>shn);
 		si[dataCount*mf+ii] = (float) (sio[ii]>>shs) + (float)(nio[(dataCount+ii) % mf]>>shn);
@@ -122,7 +122,7 @@ void setup()
 	while(Serial.available()); // clear input buffer
 	Serial.printf("Starting SDR\n\r");
 
-	fft_filt_init(0.6);
+	fft_filt_init(0.6, 1);
 
 	// initialize simulation
 #define pi 3.14159f
