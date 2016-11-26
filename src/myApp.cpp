@@ -101,7 +101,6 @@ void doSimulate(void)
 			xi[ii]=si[ii];
 		}
 		SWI_trigger(9);
-//		haveData=1;
 		dataCount=0;
 	}
 }
@@ -122,7 +121,9 @@ void setup()
 	while(Serial.available()); // clear input buffer
 	Serial.printf("Starting SDR\n\r");
 
-	fft_filt_init(0.75, 2, 0.05);
+//	fft_filt_init(0.6, 0, 0.0);		// LP filter (3rf parameter irrelevant)
+	fft_filt_init(0.6, 1, 0.0);	// High pass filter (3rf parameter irrelevant)
+//	fft_filt_init(0.75, 2, 0.05);	// band-pass filter
 
 	// initialize simulation
 #define pi 3.14159f

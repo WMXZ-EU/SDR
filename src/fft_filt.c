@@ -91,7 +91,7 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
      	nc =  numCoeffs;
      }
      else if(type == 1) // high-pass filter
-     {	fcf = 1.0f - fc;
+     {	fcf = -fc;
      	nc =  2*(numCoeffs/2);
      }
      else if (type == 2) // band-pass filter
@@ -107,7 +107,7 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
      }
      if(type==1)
      {
-    	 for(jj=1; jj< nc+1; jj+=2) coeffs[jj] = - coeffs[jj];
+    	 coeffs[nc/2] += 1;
      }
      else if (type==2)
      {
