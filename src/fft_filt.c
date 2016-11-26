@@ -64,7 +64,7 @@ float32_t Izero (float32_t x)
     return (summe);
 }  // END Izero
 
-void calc_FIR_lowpass_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Astop, int high)
+void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Astop, int type, float dfc)
  {	// modified after
 	// Wheatley, M. (2011): CuteSDR Technical Manual. www.metronix.com, pages 118 - 120, FIR with Kaiser-Bessel Window
 	// assess required number of coefficients by
@@ -86,13 +86,18 @@ void calc_FIR_lowpass_coeffs (float * coeffs, int numCoeffs, float32_t fc, float
     	 Beta = 0.5842 * powf((Astop - 20.96), 0.4) + 0.7886 * (Astop - 20.96);
 
      izb = Izero (Beta);
-     if(high)
+     if(type == 0) // low pass filter
+     {	fcf = fc;
+     	nc =  numCoeffs;
+     }
+     else if(type == 1) // high-pass filter
      {	fcf = 1.0f - fc;
      	nc =  2*(numCoeffs/2);
      }
-     else
-     {	fcf = fc;
-     	nc =  numCoeffs;
+     else if (type == 2) // band-pass filter
+     {
+    	 fcf = dfc;
+     	 nc =  2*(numCoeffs/2); // maybe not needed
      }
 
      for(ii= - nc, jj=0; ii< nc; ii+=2,jj++)
@@ -100,16 +105,20 @@ void calc_FIR_lowpass_coeffs (float * coeffs, int numCoeffs, float32_t fc, float
     	 float x =(float)ii/(float)nc;
     	 coeffs[jj] = fcf * m_sinc(ii,fcf) * Izero(Beta*sqrtf(1.0f - x*x))/izb;
      }
-     if(high)
+     if(type==1)
      {
     	 for(jj=1; jj< nc+1; jj+=2) coeffs[jj] = - coeffs[jj];
+     }
+     else if (type==2)
+     {
+       	 for(jj=0; jj< nc+1; jj++) coeffs[jj] *= 2.0f*cosf(PIH*(2*jj-nc)*fc);
      }
 
  } // END calc_lowpass_coeffs
 
 
 
-void fft_filt_init(float fc, int high)
+void fft_filt_init(float fc, int type, float dfc)
 {   int ii;
 	for(ii=0; ii< 1024; ii++)
 	{
@@ -117,7 +126,7 @@ void fft_filt_init(float fc, int high)
 		yy[2*ii]=0; yy[2*ii+1]=0;
 	}
 	float coeffs[NF+1];
-	calc_FIR_lowpass_coeffs(coeffs, NF, fc, ASTOP, high);
+	calc_FIR_coeffs(coeffs, NF, fc, ASTOP, type, dfc);
 
 	for(ii=0; ii<(NF+1); ii++) bb[2*ii]=coeffs[ii];
 	//

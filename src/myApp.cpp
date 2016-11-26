@@ -15,7 +15,7 @@ extern "C" void loop(void);
 
 extern "C"
 {
-	void fft_filt_init(float fc, int high);
+	void fft_filt_init(float fc, int type, float dfc);
 	void fft_filt_exec(float *zr, float *zi, float *xr, float *xi, int nx, int MM);
 }
 
@@ -122,7 +122,7 @@ void setup()
 	while(Serial.available()); // clear input buffer
 	Serial.printf("Starting SDR\n\r");
 
-	fft_filt_init(0.6, 1);
+	fft_filt_init(0.75, 2, 0.05);
 
 	// initialize simulation
 #define pi 3.14159f
