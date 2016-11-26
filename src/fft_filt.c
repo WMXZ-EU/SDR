@@ -94,7 +94,7 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
      {	fcf = -fc;
      	nc =  2*(numCoeffs/2);
      }
-     else if (type == 2) // band-pass filter
+     else if ((type == 2) || (type==3)) // band-pass filter
      {
     	 fcf = dfc;
      	 nc =  2*(numCoeffs/2); // maybe not needed
@@ -105,6 +105,7 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
     	 float x =(float)ii/(float)nc;
     	 coeffs[jj] = fcf * m_sinc(ii,fcf) * Izero(Beta*sqrtf(1.0f - x*x))/izb;
      }
+
      if(type==1)
      {
     	 coeffs[nc/2] += 1;
@@ -112,6 +113,11 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
      else if (type==2)
      {
        	 for(jj=0; jj< nc+1; jj++) coeffs[jj] *= 2.0f*cosf(PIH*(2*jj-nc)*fc);
+     }
+     else if (type==3)
+     {
+       	 for(jj=0; jj< nc+1; jj++) coeffs[jj] *= -2.0f*cosf(PIH*(2*jj-nc)*fc);
+    	 coeffs[nc/2] += 1;
      }
 
  } // END calc_lowpass_coeffs
