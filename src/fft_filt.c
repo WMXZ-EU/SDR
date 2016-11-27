@@ -99,11 +99,28 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
     	 fcf = dfc;
      	 nc =  2*(numCoeffs/2); // maybe not needed
      }
+     else if (type==4)	// Hilbert transform
+	 {
+    	 // clear coefficients
+    	 for(ii=0; ii< 2*(nc-1); ii++) coeffs[ii]=0;
+    	 // set real delay
+    	 coeffs[nc]=1;
+
+    	 // set imaginary Hilbert coefficients
+    	 for(ii=1; ii< (nc+1); ii+=2)
+    	 {
+		    	 float x =(float)(2*ii - nc)/(float)nc;
+		    	 float w = Izero(Beta*sqrtf(1.0f - x*x))/izb; // Kaiser window
+				 coeffs[2*ii+1] = 1.0f/(PIH*(float)(ii-nc/2)) * w ;
+    	 }
+    	 return;
+	 }
 
      for(ii= - nc, jj=0; ii< nc; ii+=2,jj++)
      {
     	 float x =(float)ii/(float)nc;
-    	 coeffs[jj] = fcf * m_sinc(ii,fcf) * Izero(Beta*sqrtf(1.0f - x*x))/izb;
+    	 float w = Izero(Beta*sqrtf(1.0f - x*x))/izb;	// Kaiser window
+    	 coeffs[jj] = fcf * m_sinc(ii,fcf) * w;
      }
 
      if(type==1)
