@@ -101,6 +101,7 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
      }
      else if (type==4)	// Hilbert transform
 	 {
+      	 nc =  2*(numCoeffs/2);
     	 // clear coefficients
     	 for(ii=0; ii< 2*(nc-1); ii++) coeffs[ii]=0;
     	 // set real delay
