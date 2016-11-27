@@ -109,9 +109,10 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
     	 // set imaginary Hilbert coefficients
     	 for(ii=1; ii< (nc+1); ii+=2)
     	 {
-		    	 float x =(float)(2*ii - nc)/(float)nc;
-		    	 float w = Izero(Beta*sqrtf(1.0f - x*x))/izb; // Kaiser window
-				 coeffs[2*ii+1] = 1.0f/(PIH*(float)(ii-nc/2)) * w ;
+    		 if(2*ii==nc) continue;
+			 float x =(float)(2*ii - nc)/(float)nc;
+			 float w = Izero(Beta*sqrtf(1.0f - x*x))/izb; // Kaiser window
+			 coeffs[2*ii+1] = 1.0f/(PIH*(float)(ii-nc/2)) * w ;
     	 }
     	 return;
 	 }
