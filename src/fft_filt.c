@@ -30,6 +30,8 @@
 static float bb[2*NN];
 static float yy[2*NN];
 static float zz[2*NN];
+static float cs[NN];
+static float si[NN];
 
 //#define PI 3.14159265358979f // already defined in arm_math.h
 #define TPI	 6.28318530717959f
@@ -156,7 +158,7 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
  * @param fc	normalized cut-off frequency (LP and HP) or center frequency (BP and Stop) (normalized to nyquist)
  * @param type	frequency type (0, LP, HP, BP, Stop, all-pass Hilbert)
  * @param dfc	half bandwidth (irrelevant for LP, HP, and all-pass Hilbert) (normalized to nyquist)
- * @param hilb	general hilbert transform (0: off, 1: on)
+ * @param hilb	general hilbert transform (0: off, 1: on )
  */
 void fft_filt_init(float fc, int type, float dfc, int hilb)
 {   int ii;
@@ -172,7 +174,7 @@ void fft_filt_init(float fc, int type, float dfc, int hilb)
 	//
 	arm_cfft_f32(&arm_cfft_sR_f32_len1024, bb, 0, 1);
 
-	if(hilb) // change filter mask to act as hilbert transform
+	if(hilb==1) // change filter mask to act as hilbert transform
 	{
 		for(ii=2; ii<NN; ii++) bb[ii] *=2;		// maintain spectral energy
 		for(ii=NN; ii<2*NN; ii++) bb[ii] = 0;	// remove negative frequencies
@@ -216,4 +218,38 @@ void fft_filt_init(float fc, int type, float dfc, int hilb)
 	float *zp = &zz[2*(MM-1)];
 	for(ii = 0; ii < LL; ii++) { zr[ii] = zp[2*ii]; zi[ii] = zp[2*ii+1];}
 }
+
+
+void ssb_init( float fc, float fo)
+{	int ii;
+
+	int type = 2;
+	float dfc = 0.01;
+	int hilb = 1;
+
+	for(ii=0; ii<NN; ii++)
+	{	cs[ii] = cosf(TPI*fo*ii);
+		si[ii] = sinf(TPI*fo*ii);
+	}
+	fft_filt_init(fc, type, dfc, hilb);
+}
+/**
+ *
+ * @param zz
+ * @param zr
+ * @param zi
+ * @param xr
+ * @param xi
+ * @param nx
+ * @param MM
+ * @param isb	sideband +1: USB; -1: LSB
+ * @param fo	carrier frequency
+ */
+ void ssb_demodulate(float *zz, float *zr, float *zi, float *xr, float *xi, int nx, int MM, int isb, float *fo)
+ {	int ii;
+	 fft_filt_exec(zr, zi, xr, xi, nx, MM);
+
+	 for(ii=0; ii<nx; ii++)
+		 zz[ii]= zr[ii] * cs[ii] - isb * zi[ii] * si[ii];
+ }
 

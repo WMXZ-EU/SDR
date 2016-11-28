@@ -15,7 +15,7 @@ extern "C" void loop(void);
 
 extern "C"
 {
-	void fft_filt_init(float fc, int type, float dfc);
+	void fft_filt_init(float fc, int type, float dfc, int hilb);
 	void fft_filt_exec(float *zr, float *zi, float *xr, float *xi, int nx, int MM);
 }
 
@@ -121,10 +121,10 @@ void setup()
 	while(Serial.available()); // clear input buffer
 	Serial.printf("Starting SDR\n\r");
 
-//	fft_filt_init(0.6, 0, 0.0);		// LP filter (3rf parameter irrelevant)
-//	fft_filt_init(0.6, 1, 0.0);		// High pass filter (3rf parameter irrelevant)
-//	fft_filt_init(0.75, 2, 0.05);	// band-pass filter (1st parameter is central, 3rd parameter is half bandwidth)
-	fft_filt_init(0.75, 3, 0.05);	// stop-pass filter
+//	fft_filt_init(0.6, 0, 0.0, 0);		// LP filter (3rf parameter irrelevant)
+//	fft_filt_init(0.6, 1, 0.0, 0);		// High pass filter (3rf parameter irrelevant)
+//	fft_filt_init(0.75, 2, 0.05, 0);	// band-pass filter (1st parameter is central, 3rd parameter is half bandwidth)
+	fft_filt_init(0.75, 3, 0.05, 0);	// stop-pass filter
 
 	// initialize simulation
 #define pi 3.14159f
