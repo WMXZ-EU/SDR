@@ -64,6 +64,15 @@ float32_t Izero (float32_t x)
     return (summe);
 }  // END Izero
 
+/**
+ * Filter coefficient estimation using Kaiser Window
+ * @param coeffs	coefficients
+ * @param numCoeffs	number of coeffcients
+ * @param fc		cutoff / center frequency (normalized to nuquist)
+ * @param Astop		stopband attenuation (dB)
+ * @param type		filter type
+ * @param dfc		half filter bandwidth (normalized to nyquist)
+ */
 void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Astop, int type, float dfc)
  {	// modified after
 	// Wheatley, M. (2011): CuteSDR Technical Manual. www.metronix.com, pages 118 - 120, FIR with Kaiser-Bessel Window
@@ -142,8 +151,14 @@ void calc_FIR_coeffs (float * coeffs, int numCoeffs, float32_t fc, float32_t Ast
  } // END calc_lowpass_coeffs
 
 
-
-void fft_filt_init(float fc, int type, float dfc)
+/**
+ * Filter initialisation routine
+ * @param fc	normalized cut-off frequency (LP and HP) or center frequency (BP and Stop) (normalized to nyquist)
+ * @param type	frequency type (0, LP, HP, BP, Stop, all-pass Hilbert)
+ * @param dfc	half bandwidth (irrelevant for LP, HP, and all-pass Hilbert) (normalized to nyquist)
+ * @param hilb	general hilbert transform (0: off, 1: on)
+ */
+void fft_filt_init(float fc, int type, float dfc, int hilb)
 {   int ii;
 	for(ii=0; ii< 1024; ii++)
 	{
@@ -156,10 +171,25 @@ void fft_filt_init(float fc, int type, float dfc)
 	for(ii=0; ii<(NF+1); ii++) bb[2*ii]=coeffs[ii];
 	//
 	arm_cfft_f32(&arm_cfft_sR_f32_len1024, bb, 0, 1);
+
+	if(hilb) // change filter mask to act as hilbert transform
+	{
+		for(ii=2; ii<NN; ii++) bb[ii] *=2;		// maintain spectral energy
+		for(ii=NN; ii<2*NN; ii++) bb[ii] = 0;	// remove negative frequencies
+	}
 }
 
+/**
+ * Filter execution
+ * @param zr	output real part
+ * @param zi	output imaginary part
+ * @param xr	input real part
+ * @param xi	input imaginary part
+ * @param nx	number of input/output samples
+ * @param MM	number of filter coefficients - 1
+ */
  void fft_filt_exec(float *zr, float *zi, float *xr, float *xi, int nx, int MM)
-{	int ii;
+{	int ii,nn;
 	int LL = NN - MM + 1;
 
 	if(LL != nx) return;
